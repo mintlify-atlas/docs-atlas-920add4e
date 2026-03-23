@@ -1,0 +1,94 @@
+---
+title: "rules.yaml"
+description: "Your rules of engagement for AI agents"
+---
+
+`rules.yaml` defines what you accept and what gets rejected — automatically. Any AI agent that evaluates an opportunity against your card **must** check this file before proceeding. Rules are not suggestions; compliant agents treat them as hard constraints.
+
+## Schema
+
+<ResponseField name="engagement" type="object" required>
+  Controls which types of work you accept and how much notice you need.
+
+  <Expandable title="properties">
+    <ResponseField name="allowed_types" type="string[]" required>
+      Engagement types you are open to. Common values: `full_time`, `contract`, `fractional`, `advisory`, `internship`. Agents must reject any opportunity whose type is not in this list.
+    </ResponseField>
+
+    <ResponseField name="notice_period" type="string">
+      How much notice you need before starting a new engagement — for example `"30 days"` or `"2 weeks"`.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="compensation" type="object">
+  Your minimum compensation requirements.
+
+  <Expandable title="properties">
+    <ResponseField name="minimum_base_eur" type="string | number">
+      Minimum annual base salary in EUR. Use a numeric value for a hard floor, or the string `"negotiable"` to indicate no hard minimum. Agents must reject offers below this threshold.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="remote" type="object">
+  Your location and remote-work preferences.
+
+  <Expandable title="properties">
+    <ResponseField name="policy" type="string" required>
+      Your remote-work policy. Common values: `remote_only`, `remote_first`, `hybrid`, `on_site`.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="auto_reject" type="object">
+  Hard-stop rules that cause an opportunity to be rejected without further evaluation.
+
+  <Expandable title="properties">
+    <ResponseField name="blocked_industries" type="string[]">
+      Industries you will not work in. Any opportunity from a company in a blocked industry is automatically rejected. Examples: `gambling`, `weapons`, `tobacco`.
+    </ResponseField>
+
+    <ResponseField name="no_relocation" type="boolean">
+      When `true`, any opportunity that requires physical relocation is automatically rejected.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+## Example
+
+```yaml
+engagement:
+  allowed_types: [full_time, contract]
+  notice_period: "30 days"
+
+compensation:
+  minimum_base_eur: negotiable
+
+remote:
+  policy: remote_first
+
+auto_reject:
+  blocked_industries: [gambling, weapons]
+  no_relocation: true
+```
+
+## How agents use rules
+
+When an agent evaluates an opportunity against your card, it runs the following checks in order. The first hard rejection stops processing.
+
+1. **Engagement type check** — if the opportunity's type is not in `engagement.allowed_types`, the agent returns REJECT.
+2. **Remote policy check** — if the role requires on-site work and your policy is `remote_only`, the agent returns REJECT.
+3. **Compensation check** — if the offered compensation is below `compensation.minimum_base_eur`, the agent returns REJECT.
+4. **Industry check** — if the company's industry appears in `auto_reject.blocked_industries`, the agent returns REJECT.
+5. **Relocation check** — if the role requires relocation and `auto_reject.no_relocation` is `true`, the agent returns REJECT.
+
+If all checks pass, the agent returns ACCEPT and may proceed to the interview handoff step.
+
+<Warning>
+  Agents that bypass your `rules.yaml` constraints and initiate contact without a valid ACCEPT verdict are violating the Scoutica Protocol. If you encounter this, report it to the agent's operator. Compliant agents never skip the rules check.
+</Warning>
+
+<Tip>
+  Use `scoutica validate ./my-card/` to confirm your `rules.yaml` is well-formed and passes schema validation before publishing.
+</Tip>

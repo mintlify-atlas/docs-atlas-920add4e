@@ -1,0 +1,104 @@
+---
+title: "evidence.json"
+description: "Verifiable links to your public work"
+---
+
+`evidence.json` contains a list of items that agents can use to verify your skills. Each item points to something real and public — a GitHub repository, a certification, a portfolio piece, or a publication. Agents can fetch and inspect these links to confirm your capabilities rather than relying solely on your self-reported `profile.json`.
+
+<Info>
+  Evidence URLs are checked for reachability during `scoutica validate`. A URL that returns a non-200 status will produce a validation warning, though it will not block publishing.
+</Info>
+
+## Schema
+
+<ResponseField name="items" type="object[]" required>
+  Array of evidence items.
+
+  <Expandable title="item properties">
+    <ResponseField name="type" type="string" required>
+      The kind of evidence. One of: `github_repo`, `certification`, `portfolio`, `publication`.
+    </ResponseField>
+
+    <ResponseField name="title" type="string" required>
+      A short human-readable name for this evidence item.
+    </ResponseField>
+
+    <ResponseField name="url" type="string" required>
+      The public URL where this evidence can be found.
+    </ResponseField>
+
+    <ResponseField name="skills" type="string[]" required>
+      Skills or technologies this evidence demonstrates — for example `["Go", "AI", "API Design"]`. Agents use this list to match evidence to capability claims.
+    </ResponseField>
+
+    <ResponseField name="description" type="string">
+      Optional human-readable description of the item and what it demonstrates.
+    </ResponseField>
+
+    <ResponseField name="trust_level" type="number">
+      How strongly this item has been verified. See trust levels below. Defaults to `0` (self-asserted).
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+## Evidence types
+
+| Type | Description |
+|---|---|
+| `github_repo` | A public GitHub repository. Agents can inspect language distribution, commit history, contributor list, and last activity. |
+| `certification` | An industry certification with a verifiable certificate URL. |
+| `portfolio` | A portfolio page, design showcase, or deployed project. |
+| `publication` | A blog post, research paper, technical article, or documentation contribution. |
+
+## Trust levels
+
+Trust levels describe how an evidence item has been verified. Higher levels carry more weight with employer agents.
+
+| Level | Label | Meaning |
+|---|---|---|
+| `0` | Self-asserted | You added this URL yourself. No external verification has occurred. |
+| `1` | URL reachable | The Scoutica validator confirmed the URL returns a 200 response. |
+| `2` | Content verified | An agent has inspected the content and confirmed it matches the claimed skills. |
+| `3` | Third-party confirmed | A trusted third party (e.g., employer, institution) has attested to this item. |
+| `4` | Blockchain-verified | The item is anchored to an immutable public ledger. |
+
+<Note>
+  Most evidence items start at trust level 0 or 1. Trust level 2 is assigned when an agent reads the content and confirms the skill match. Levels 3 and 4 require external processes not yet automated by the CLI.
+</Note>
+
+## Example
+
+```json
+{
+  "items": [
+    {
+      "type": "github_repo",
+      "title": "switchAILocal",
+      "url": "https://github.com/traylinx/switchAILocal",
+      "skills": ["Go", "AI", "API Design"],
+      "description": "Production LLM routing proxy with priority-based fallback.",
+      "trust_level": 1
+    },
+    {
+      "type": "certification",
+      "title": "AWS Certified Solutions Architect",
+      "url": "https://aws.amazon.com/certification/certified-solutions-architect-associate/",
+      "skills": ["AWS", "Cloud Architecture"],
+      "trust_level": 2
+    }
+  ]
+}
+```
+
+## How agents verify evidence
+
+For `github_repo` items, agents can inspect the repository directly:
+
+- Does the repository exist and is it publicly accessible?
+- What programming languages are present?
+- How many commits does it have and when was it last active?
+- Does the candidate appear as a contributor?
+
+For `certification` and `portfolio` items, agents note that these are self-published or externally hosted and assign trust accordingly.
+
+For `publication` items, agents treat them as demonstrations of domain knowledge and writing ability rather than third-party validation.

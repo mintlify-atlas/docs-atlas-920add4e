@@ -1,0 +1,187 @@
+---
+title: "Data Model"
+description: "The Scoutica Protocol card file relationships and schema definitions"
+---
+
+A Skill Card consists of four files. `scoutica.json` is the entry point; it points consumers to the other three files.
+
+## File relationships
+
+```text
+scoutica.json
+  └── discovers → profile.json
+                    ├── has → skills (languages, frameworks, tools)
+                    ├── has → experience records
+                    └── speaks → language proficiencies
+
+rules.yaml
+  ├── defines → engagement rules
+  ├── sets → compensation floor
+  └── blocks → auto-reject criteria
+
+evidence.json
+  └── items[]
+        └── proves → skills
+```
+
+---
+
+## scoutica.json
+
+The discovery file. Place this at the root of any GitHub repository to declare that it contains a Scoutica Protocol card.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `scoutica_version` | `string` | Protocol version (e.g. `"0.1.0"`) |
+| `card_url` | `string` | Base URL for fetching the other card files |
+| `name` | `string` | Display name of the card owner |
+| `updated` | `string` | ISO 8601 date of last update |
+| `title` | `string` | Professional title |
+| `seniority` | `string` | Seniority level (e.g. `"senior"`) |
+| `domains` | `string[]` | Primary domains (e.g. `["Backend Engineering"]`) |
+| `availability` | `string` | Availability status (e.g. `"in_2_weeks"`) |
+| `entity_type` | `string` | Entity type: `human`, `ai_agent`, `service`, `robot`, `team`, `organization` |
+
+```json
+{
+  "scoutica": "0.1.0",
+  "card_url": "https://raw.githubusercontent.com/user/my-card/main",
+  "name": "Alice Developer",
+  "title": "Senior Backend Engineer",
+  "seniority": "senior",
+  "domains": ["Backend Engineering", "DevOps"],
+  "availability": "in_2_weeks",
+  "entity_type": "human",
+  "updated": "2026-03-23"
+}
+```
+
+---
+
+## profile.json
+
+The candidate's professional profile. This is the primary data file.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `name` | `string` | Full name |
+| `title` | `string` | Current professional title |
+| `seniority` | `string` | Seniority level |
+| `years_experience` | `integer` | Total years of professional experience |
+| `skills.languages` | `string[]` | Programming languages |
+| `skills.frameworks` | `string[]` | Frameworks and libraries |
+| `skills.tools` | `string[]` | Tools and platforms |
+
+```json
+{
+  "name": "Alice Developer",
+  "title": "Senior Backend Engineer",
+  "seniority": "senior",
+  "years_experience": 8,
+  "domains": ["Backend Engineering", "DevOps"],
+  "skills": {
+    "languages": ["Python", "Go", "TypeScript"],
+    "frameworks": ["FastAPI", "Django", "gRPC"],
+    "tools": ["Docker", "Kubernetes", "Terraform"]
+  }
+}
+```
+
+---
+
+## rules.yaml
+
+The candidate's Rules of Engagement. Agents **must** evaluate these before contacting a candidate.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `engagement` | `object` | Allowed engagement types, notice period, start date |
+| `compensation` | `object` | Minimum base salary, currency, negotiability |
+| `remote` | `object` | Remote policy (`remote_only`, `hybrid`, `on_site`) |
+| `auto_reject` | `object` | Blocked industries, company types, or conditions |
+
+```yaml
+engagement:
+  allowed_types:
+    - full_time
+    - contract
+  notice_period_weeks: 4
+
+compensation:
+  minimum_base_eur: 90000
+  currency: EUR
+
+remote:
+  policy: remote_only
+
+auto_reject:
+  blocked_industries:
+    - gambling
+    - weapons
+```
+
+---
+
+## evidence.json
+
+Verifiable links that prove the candidate's skills.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `items` | `array` | List of evidence items |
+| `items[].title` | `string` | Display name of the evidence |
+| `items[].url` | `string` | URL to the evidence (GitHub repo, cert, portfolio) |
+| `items[].type` | `string` | Type: `github_repo`, `certification`, `portfolio`, `publication` |
+| `items[].skills` | `string[]` | Skills this evidence proves |
+
+```json
+{
+  "items": [
+    {
+      "title": "Open source API project",
+      "url": "https://github.com/alice/my-api",
+      "type": "github_repo",
+      "skills": ["Python", "FastAPI", "Docker"]
+    },
+    {
+      "title": "AWS Solutions Architect",
+      "url": "https://www.credly.com/badges/example",
+      "type": "certification",
+      "skills": ["AWS", "Cloud Architecture"]
+    }
+  ]
+}
+```
+
+---
+
+## Schema validation
+
+All four files have corresponding JSON Schema definitions in the `schemas/` directory:
+
+| File | Schema |
+|------|--------|
+| `profile.json` | `schemas/candidate_profile.schema.json` |
+| `rules.yaml` | `schemas/rules_of_engagement.schema.json` |
+| `evidence.json` | `schemas/evidence.schema.json` |
+| `scoutica.json` | `schemas/scoutica_discovery.schema.json` |
+
+Validate your card with the CLI:
+
+```bash
+scoutica validate ./my-card/
+```
+
+Or programmatically with `jsonschema`:
+
+```python
+import json, jsonschema
+
+with open('schemas/candidate_profile.schema.json') as f:
+    schema = json.load(f)
+
+with open('profile.json') as f:
+    profile = json.load(f)
+
+jsonschema.validate(profile, schema)  # raises ValidationError if invalid
+```

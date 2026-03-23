@@ -1,0 +1,99 @@
+---
+title: "Schema Validation"
+description: "Validate Skill Card files against the Scoutica Protocol JSON Schemas"
+---
+
+The Scoutica Protocol provides JSON Schema definitions for every card file. Validate cards before processing them to catch malformed data early.
+
+## Validating with Python
+
+```python
+import jsonschema
+
+# Load schema
+with open('schemas/candidate_profile.schema.json') as f:
+    schema = json.load(f)
+
+# Validate
+with open('profile.json') as f:
+    profile = json.load(f)
+
+jsonschema.validate(profile, schema)  # Raises ValidationError if invalid
+```
+
+Install the dependency with:
+
+```bash
+pip install jsonschema
+```
+
+## Available schemas
+
+| Schema file | Validates |
+|---|---|
+| `schemas/candidate_profile.schema.json` | `profile.json` — skills, seniority, experience |
+| `schemas/rules_of_engagement.schema.json` | `rules.yaml` — compensation, remote policy, blocked industries |
+| `schemas/evidence.schema.json` | `evidence.json` — evidence items and URLs |
+| `schemas/scoutica_discovery.schema.json` | `scoutica.json` — discovery metadata |
+
+## CLI validation
+
+The Scoutica CLI validates an entire card directory in one command:
+
+```bash
+scoutica validate ./my-card/
+```
+
+This checks all four card files against their schemas and reports any validation errors:
+
+```bash
+ Validating Scoutica Card: /path/to/my-card
+
+ SKILL.md: Valid (frontmatter present)
+ Candidate Profile: Valid
+ Evidence Registry: Valid
+ Rules of Engagement: Valid
+ rules/: All 4 rule files present
+
+Results: 5 passed, 0 failed, 0 warnings
+ Card is valid!
+```
+
+## Integration patterns
+
+### Pattern 2: ATS integration
+
+An applicant tracking system can use the protocol to auto-populate candidate records and pre-flag offer mismatches before a recruiter even opens the profile.
+
+```mermaid
+sequenceDiagram
+    participant ATS as ATS System
+    participant GH as GitHub
+
+    ATS->>GH: GET profile.json
+    GH-->>ATS: {skills, experience, seniority}
+    ATS->>ATS: Auto-populate candidate record
+    ATS->>GH: GET rules.yaml
+    GH-->>ATS: {salary_floor, remote_policy}
+    ATS->>ATS: Flag: "Would our offer be auto-rejected?"
+    ATS->>GH: GET evidence.json
+    GH-->>ATS: [{github_repos, certs, portfolio}]
+    ATS->>ATS: Attach evidence links to candidate review
+```
+
+### Pattern 3: Embeddable widget
+
+Embed a Scoutica Protocol badge on any personal website. The widget reads the card at runtime and renders a live profile summary.
+
+```html
+<!-- Scoutica Protocol badge for personal websites -->
+<div id="scoutica-badge"
+     data-url="https://github.com/user/my-card"
+     data-theme="dark">
+</div>
+<script src="https://cdn.scoutica.dev/widget.js"></script>
+```
+
+<Note>
+  The widget fetches and validates the card client-side on page load. Validation errors are surfaced in the browser console. Use `scoutica validate` locally before publishing your card to catch issues before they affect the live widget.
+</Note>
