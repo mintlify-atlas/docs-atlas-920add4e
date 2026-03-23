@@ -1,0 +1,115 @@
+{
+  "projectType": "cli-tool",
+  "projectName": "Scoutica Protocol",
+  "projectDescription": "An open protocol and CLI that lets professionals own their AI-readable skill cards, enabling AI agents to discover, evaluate, and match candidates without intermediaries.",
+  "theme": "aspen",
+  "primaryColor": "#242b2c",
+  "lightColor": "#040404",
+  "darkColor": null,
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "introduction",
+              "quickstart",
+              "installation"
+            ]
+          },
+          {
+            "group": "CLI Reference",
+            "pages": [
+              "cli/overview",
+              "cli/init",
+              "cli/scan",
+              "cli/validate",
+              "cli/publish",
+              "cli/resolve",
+              "cli/info",
+              "cli/doctor",
+              "cli/update"
+            ]
+          },
+          {
+            "group": "Your Skill Card",
+            "pages": [
+              "skill-card/overview",
+              "skill-card/profile",
+              "skill-card/rules",
+              "skill-card/evidence",
+              "skill-card/discovery"
+            ]
+          },
+          {
+            "group": "Guides",
+            "pages": [
+              "guides/create-card",
+              "guides/privacy-zones",
+              "guides/use-cases",
+              "guides/troubleshooting"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Developer Guide",
+        "groups": [
+          {
+            "group": "Integration",
+            "pages": [
+              "developer/overview",
+              "developer/fetching-cards",
+              "developer/discovery-protocol",
+              "developer/evaluating-candidates",
+              "developer/evidence-verification",
+              "developer/schema-validation"
+            ]
+          },
+          {
+            "group": "Architecture",
+            "pages": [
+              "architecture/overview",
+              "architecture/six-pillars",
+              "architecture/data-model",
+              "architecture/compliance"
+            ]
+          },
+          {
+            "group": "Roadmap",
+            "pages": [
+              "roadmap"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "AI-powered card generation from CVs, certs, and portfolios using local AI providers",
+    "Candidate-owned data: skill cards live in personal GitHub repos, never on a central server",
+    "Rules of Engagement enforced by AI agents (salary floor, remote policy, blocked industries)",
+    "Three-zone privacy model: public profile, verified details, private contact info",
+    "Cross-platform CLI for macOS, Linux, and Windows (PowerShell)",
+    "JSON Schema validation for protocol compliance",
+    "EU AI Act compliant by design — no demographic fields, human-in-the-loop",
+    "Extensible entity model: humans, AI agents, services, robots, teams, organizations"
+  ],
+  "publicApiSurface": [
+    "scoutica init [directory]",
+    "scoutica scan <docs-folder> [--with <provider>] [--output <dir>] [--clipboard]",
+    "scoutica validate [directory]",
+    "scoutica publish [directory]",
+    "scoutica resolve <url> [save-dir]",
+    "scoutica info [directory]",
+    "scoutica doctor",
+    "scoutica update",
+    "profile.json — machine-readable professional profile",
+    "rules.yaml — candidate rules of engagement",
+    "evidence.json — verifiable public work links",
+    "scoutica.json — discovery file (like robots.txt for AI agents)",
+    "schemas/scoutica_discovery.schema.json — JSON Schema for discovery file"
+  ]
+}
