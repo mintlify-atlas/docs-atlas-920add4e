@@ -27,9 +27,9 @@ my-card/
 
 ## What each file does
 
-**`profile.json`** is the machine-readable core of your card. It describes your name, title, seniority level, years of experience, professional domains, and specific skills — languages, frameworks, and tools. Agents read this file to understand your capabilities.
+**`profile.json`** is the machine-readable core of your card. It describes your name, title, seniority level, years of experience, professional domains, and specific skills — skills, tools, and specializations. Agents read this file to understand your capabilities.
 
-**`rules.yaml`** defines your rules of engagement. It specifies which engagement types you accept, your minimum compensation, remote-work policy, and a list of industries or conditions that trigger automatic rejection. Agents are required to respect these rules before proceeding with any opportunity.
+**`rules.yaml`** defines your rules of engagement. It specifies which engagement types you accept, your minimum compensation, remote-work policy, and industries that trigger automatic rejection, preferred tech stack keywords, and a soft-reject threshold. Agents are required to respect these rules before proceeding with any opportunity.
 
 **`evidence.json`** contains verifiable links to your public work — GitHub repositories, certifications, portfolio pieces, and publications. Each item includes a trust level that describes how it has been verified.
 
@@ -41,7 +41,7 @@ my-card/
 
 ## File pages
 
-<Columns cols={2}>
+<CardGroup cols={2}>
   <Card title="profile.json" icon="user" href="/skill-card/profile">
     Your machine-readable professional profile — skills, domains, and experience.
   </Card>
@@ -54,4 +54,4 @@ my-card/
   <Card title="scoutica.json" icon="search" href="/skill-card/discovery">
     The discovery file that lets agents find your card.
   </Card>
-</Columns>
+</CardGroup>

@@ -12,7 +12,7 @@ scoutica validate [directory]
 ## Options
 
 <ParamField path="directory" type="string">
-  Path to the card directory to validate. Defaults to the current directory.
+  Path to the card directory to validate. Defaults to the current directory (`.`).
 </ParamField>
 
 ## Usage examples
@@ -29,34 +29,39 @@ scoutica validate ./my-card/
 
 The validate command runs the `validate_card.py` Python script against your card directory. It performs five checks:
 
-| Check | Description |
-|-------|-------------|
-| `profile.json` schema | Validates your profile against the JSON Schema for `profile.json` |
-| `rules.yaml` schema | Validates your rules file against the JSON Schema for `rules.yaml` |
-| `evidence.json` schema | Validates your evidence list against the JSON Schema for `evidence.json` |
-| Required files present | Confirms that `profile.json`, `rules.yaml`, and `evidence.json` all exist |
-| Field completeness | Checks that required fields are populated and not empty |
+| # | Check | File | Description |
+|---|-------|------|-------------|
+| 1 | SKILL.md | `SKILL.md` | File exists and starts with valid YAML frontmatter (`---`) |
+| 2 | Candidate Profile | `profile.json` | Validated against `candidate_profile.schema.json` — required fields: `schema_version`, `title`, `seniority`, `skills`, `primary_domains` |
+| 3 | Evidence Registry | `evidence.json` | Validated against `evidence.schema.json` — required fields: `schema_version`, `items` |
+| 4 | Rules of Engagement | `rules.yaml` | Validated against `roe.schema.json` — required fields: `schema_version`, `engagement`, `remote`, `filters`, `privacy` |
+| 5 | Rules directory | `rules/` | Directory exists with all 4 rule files (warning if missing, not a failure) |
 
 ## Expected output
 
 ```text
-  Validating card in ./my-card/...
+🔍 Validating Scoutica Card: /path/to/my-card
 
-  ✅ profile.json — valid
-  ✅ rules.yaml — valid
-  ✅ evidence.json — valid
-  ✅ All required files present
-  ✅ Required fields are populated
+✅ SKILL.md: Valid (frontmatter present)
+✅ Candidate Profile: Valid
+✅ Evidence Registry: Valid
+✅ Rules of Engagement: Valid
+✅ rules/: All 4 rule files present
 
-  Card is valid and ready to publish.
+Results: 5 passed, 0 failed, 0 warnings
+🎉 Card is valid!
 ```
+
+<Note>
+  The `rules/` directory check returns a **warning** (not a failure) if missing. Your card can still be published, but agents may not know how to evaluate fit without rule templates.
+</Note>
 
 ## Exit codes
 
 | Code | Meaning |
 |------|---------|
 | `0` | All checks passed — card is valid |
-| `1` | One or more checks failed — review the output for details |
+| `1` | One or more required checks failed — review the output for details |
 
 Because `validate` exits with code `1` on failure, you can chain it safely with `publish`:
 

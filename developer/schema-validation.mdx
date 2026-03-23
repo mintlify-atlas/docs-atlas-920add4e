@@ -8,10 +8,10 @@ The Scoutica Protocol provides JSON Schema definitions for every card file. Vali
 ## Validating with Python
 
 ```python
-import jsonschema
+import json, jsonschema
 
 # Load schema
-with open('schemas/candidate_profile.schema.json') as f:
+with open('protocol/platform/01_schemas/candidate_profile.schema.json') as f:
     schema = json.load(f)
 
 # Validate
@@ -24,17 +24,23 @@ jsonschema.validate(profile, schema)  # Raises ValidationError if invalid
 Install the dependency with:
 
 ```bash
-pip install jsonschema
+pip install jsonschema pyyaml
 ```
 
 ## Available schemas
 
+The schemas live in `protocol/platform/01_schemas/` in the repository:
+
 | Schema file | Validates |
 |---|---|
-| `schemas/candidate_profile.schema.json` | `profile.json` — skills, seniority, experience |
-| `schemas/rules_of_engagement.schema.json` | `rules.yaml` — compensation, remote policy, blocked industries |
-| `schemas/evidence.schema.json` | `evidence.json` — evidence items and URLs |
-| `schemas/scoutica_discovery.schema.json` | `scoutica.json` — discovery metadata |
+| `candidate_profile.schema.json` | `profile.json` — skills, seniority, primary domains, experience |
+| `roe.schema.json` | `rules.yaml` — engagement types, compensation floors, remote policy, filters, privacy zones |
+| `evidence.schema.json` | `evidence.json` — evidence items, URLs, skills demonstrated |
+| `scoutica_discovery.schema.json` | `scoutica.json` — discovery metadata (in `schemas/` at repo root) |
+
+<Note>
+  The three card schemas (`candidate_profile`, `roe`, `evidence`) live in `protocol/platform/01_schemas/`. The discovery schema (`scoutica_discovery`) lives in `schemas/` at the repository root.
+</Note>
 
 ## CLI validation
 
@@ -44,19 +50,19 @@ The Scoutica CLI validates an entire card directory in one command:
 scoutica validate ./my-card/
 ```
 
-This checks all four card files against their schemas and reports any validation errors:
+This checks all card files against their schemas and reports any validation errors:
 
-```bash
- Validating Scoutica Card: /path/to/my-card
+```text
+🔍 Validating Scoutica Card: /path/to/my-card
 
- SKILL.md: Valid (frontmatter present)
- Candidate Profile: Valid
- Evidence Registry: Valid
- Rules of Engagement: Valid
- rules/: All 4 rule files present
+✅ SKILL.md: Valid (frontmatter present)
+✅ Candidate Profile: Valid
+✅ Evidence Registry: Valid
+✅ Rules of Engagement: Valid
+✅ rules/: All 4 rule files present
 
 Results: 5 passed, 0 failed, 0 warnings
- Card is valid!
+🎉 Card is valid!
 ```
 
 ## Integration patterns
@@ -71,13 +77,13 @@ sequenceDiagram
     participant GH as GitHub
 
     ATS->>GH: GET profile.json
-    GH-->>ATS: {skills, experience, seniority}
+    GH-->>ATS: {skills, primary_domains, seniority}
     ATS->>ATS: Auto-populate candidate record
     ATS->>GH: GET rules.yaml
-    GH-->>ATS: {salary_floor, remote_policy}
+    GH-->>ATS: {engagement.allowed_types, remote.policy, filters.blocked_industries}
     ATS->>ATS: Flag: "Would our offer be auto-rejected?"
     ATS->>GH: GET evidence.json
-    GH-->>ATS: [{github_repos, certs, portfolio}]
+    GH-->>ATS: [{items with skills_demonstrated}]
     ATS->>ATS: Attach evidence links to candidate review
 ```
 
@@ -95,5 +101,5 @@ Embed a Scoutica Protocol badge on any personal website. The widget reads the ca
 ```
 
 <Note>
-  The widget fetches and validates the card client-side on page load. Validation errors are surfaced in the browser console. Use `scoutica validate` locally before publishing your card to catch issues before they affect the live widget.
+  The widget fetches and validates the card client-side on page load. Use `scoutica validate` locally before publishing your card to catch issues before they affect the live widget.
 </Note>

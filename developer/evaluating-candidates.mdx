@@ -13,34 +13,37 @@ Evaluating a candidate involves two steps: scoring their skills against job requ
 
 The scoring function compares the candidate's declared skills against required and nice-to-have skills from the job requirements.
 
+In `profile.json`, skills are stored as a **flat array** in the `skills` field (plus separate `tools_and_platforms` and `specializations` arrays). Pool all of these when scoring:
+
 ```python
 def score_candidate(profile, job_requirements):
     """Score a candidate's profile against job requirements."""
+    # Pool all skills from the flat arrays
     candidate_skills = set()
-    for category in profile.get('skills', {}).values():
-        if isinstance(category, list):
-            candidate_skills.update(s.lower() for s in category)
-    
+    for field in ['skills', 'tools_and_platforms', 'specializations']:
+        for item in profile.get(field, []):
+            candidate_skills.add(item.lower())
+
     required = set(s.lower() for s in job_requirements.get('required_skills', []))
     nice_to_have = set(s.lower() for s in job_requirements.get('nice_to_have', []))
-    
+
     matched = required & candidate_skills
     bonus = nice_to_have & candidate_skills
-    
+
     if not required:
         return 100
-    
+
     score = (len(matched) / len(required)) * 100
     score += len(bonus) * 5  # 5 bonus points per nice-to-have
-    
+
     return min(score, 100)
 ```
-
-Skills from all categories in `profile.skills` — `languages`, `frameworks`, `tools_and_platforms` — are pooled together and matched case-insensitively.
 
 ## Rules pre-screening
 
 After scoring, run the candidate's `rules.yaml` against the offer to check for automatic rejections.
+
+The rules schema uses `filters.blocked_industries` (not `auto_reject`) and `engagement.compensation.minimum_base_eur` (a nested object keyed by engagement type, not a top-level value):
 
 ```python
 import yaml
@@ -49,28 +52,30 @@ def pre_screen(rules_text, offer):
     """Check if an offer passes the candidate's Rules of Engagement."""
     rules = yaml.safe_load(rules_text)
     rejections = []
-    
+
     # Check blocked industries
-    blocked = rules.get('auto_reject', {}).get('blocked_industries', [])
+    blocked = rules.get('filters', {}).get('blocked_industries', [])
     if offer.get('industry') in blocked:
         rejections.append(f"Industry '{offer['industry']}' is blocked")
-    
+
     # Check engagement type
     allowed_types = rules.get('engagement', {}).get('allowed_types', [])
     if allowed_types and offer.get('engagement_type') not in allowed_types:
         rejections.append(f"Engagement type '{offer['engagement_type']}' not allowed")
-    
-    # Check salary
-    min_salary = rules.get('compensation', {}).get('minimum_base_eur')
-    if min_salary and min_salary != 'negotiable':
-        if offer.get('salary', 0) < int(min_salary):
-            rejections.append(f"Salary {offer['salary']} below minimum {min_salary}")
-    
+
+    # Check compensation (keyed by engagement type: permanent, contract, advisory)
+    eng_type = offer.get('engagement_type', 'permanent')
+    comp = rules.get('engagement', {}).get('compensation', {})
+    min_comp = comp.get('minimum_base_eur', {}).get(eng_type)
+    if min_comp and min_comp != 'negotiable':
+        if offer.get('salary', 0) < int(min_comp):
+            rejections.append(f"Salary {offer['salary']} below minimum {min_comp}")
+
     # Check remote policy
     policy = rules.get('remote', {}).get('policy')
     if policy == 'remote_only' and offer.get('location_required'):
         rejections.append("Candidate requires fully remote")
-    
+
     return {
         'status': 'REJECTED' if rejections else 'PASS',
         'reasons': rejections

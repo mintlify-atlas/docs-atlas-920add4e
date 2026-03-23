@@ -11,9 +11,9 @@ Every Skill Card contains four files:
 
 | File | Format | Contents |
 |---|---|---|
-| `profile.json` | JSON | Skills, experience, seniority, domains |
-| `rules.yaml` | YAML | Compensation floor, remote policy, blocked industries |
-| `evidence.json` | JSON | Verifiable links: repos, certs, portfolio, publications |
+| `profile.json` | JSON | Skills (flat array), `primary_domains`, `tools_and_platforms`, seniority, experience |
+| `rules.yaml` | YAML | Engagement types, compensation floors, remote policy, `filters.blocked_industries` |
+| `evidence.json` | JSON | Verifiable links: repos, certs, portfolio, publications — with `skills_demonstrated` |
 | `scoutica.json` | JSON | Discovery metadata: name, title, availability |
 
 ## Fetching from GitHub
@@ -39,8 +39,9 @@ def fetch_card(base_url):
     }
 
 card = fetch_card("https://raw.githubusercontent.com/user/my-card/main")
-print(card['profile']['name'])    # "Alice Developer"
-print(card['profile']['skills'])  # {languages: [...], frameworks: [...]}
+print(card['profile']['name'])             # "Alex Chen"
+print(card['profile']['skills'])           # ["Python", "TypeScript", "Go", ...]
+print(card['profile']['primary_domains'])  # ["Backend Engineering", "Cloud Infrastructure"]
 ```
 
 ```javascript Node.js
@@ -56,22 +57,31 @@ async function fetchCard(baseUrl) {
 // Usage
 const card = await fetchCard('https://raw.githubusercontent.com/user/my-card/main');
 console.log(card.profile.name);
+console.log(card.profile.skills);           // flat string array
+console.log(card.profile.primary_domains);  // e.g. ["Backend Engineering"]
 ```
 
 ```go Go
 type Profile struct {
-    Name           string   `json:"name"`
-    Title          string   `json:"title"`
-    Seniority      string   `json:"seniority"`
-    YearsExp       int      `json:"years_experience"`
-    Domains        []string `json:"domains"`
-    Skills         Skills   `json:"skills"`
+    SchemaVersion           string       `json:"schema_version"`
+    Name                    string       `json:"name"`
+    Title                   string       `json:"title"`
+    Seniority               string       `json:"seniority"`
+    YearsExp                int          `json:"years_experience"`
+    Availability            string       `json:"availability"`
+    PrimaryDomains          []string     `json:"primary_domains"`
+    Skills                  []string     `json:"skills"`
+    ToolsAndPlatforms       []string     `json:"tools_and_platforms"`
+    CertificationsLicenses  []string     `json:"certifications_and_licenses"`
+    Specializations         []string     `json:"specializations"`
+    SpokenLanguages         []LangEntry  `json:"spoken_languages"`
+    Education               string       `json:"education"`
+    Summary                 string       `json:"summary"`
 }
 
-type Skills struct {
-    Languages        []string `json:"languages"`
-    Frameworks       []string `json:"frameworks"`
-    ToolsAndPlatforms []string `json:"tools_and_platforms"`
+type LangEntry struct {
+    Language string `json:"language"`
+    Level    string `json:"level"`
 }
 ```
 
